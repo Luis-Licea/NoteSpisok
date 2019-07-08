@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/dictionaries">
+        <file>dict/Bash/terms.txt</file>
+    </qresource>
+    <qresource prefix="/"/>
+</RCC>
