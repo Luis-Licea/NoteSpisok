@@ -1,6 +1,6 @@
 # NoteSpisok
 
-OneSpisok is a program designed for keeping notes, be it for languages, school, or programming. 
+NoneSpisok is a program designed for keeping notes, be it for languages, school, or programming. 
 
 ## Testing and Compiling
 
@@ -14,7 +14,7 @@ portable version of the program.
 
 ## Authors
 
-* **Luis David Licea Torres** - [NoteSpisok](https://github.com/PurpleBooth)
+* **Luis David Licea Torres** - [NoteSpisok](https://github.com/Luis-Licea/NoteSpisok)
 
 ## License
 
