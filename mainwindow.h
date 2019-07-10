@@ -43,9 +43,9 @@ private slots:
 
     void loadTerms();
 
-    QString currentDirectory() const;
+    QString currentTermFolder() const;
 
-    void loadDirectories();
+    void loadTermFolders();
 
     void deleteTerm();
 

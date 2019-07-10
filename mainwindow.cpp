@@ -10,73 +10,95 @@
 #include <QDebug>
 #include <QList>
 
-QString const mainDirectory{"resources/"};
-QString const historyDirectory{"resources/history.txt"};
-QString MainWindow::currentDirectory() const
+QString const resourcesFolder{"resources/"};
+QString const historyFile{"resources/history.txt"};
+
+/**
+ * @brief MainWindow::currentTermFolder
+ * Returns the current folder where terms are being saved.
+ * @return the current folder where terms are being saved
+ */
+QString MainWindow::currentTermFolder() const
 {
-    QString currentDirectory{ui->comboBoxDictionaries->currentText()};
-    return mainDirectory + currentDirectory + "/";
+    //Obtain the current folder name from the combo box name
+    QString currentTermFolder{ui->comboBoxDictionaries->currentText()};
+    return resourcesFolder + currentTermFolder + "/";
 }
 
-void MainWindow::loadDirectories()
+/**
+ * @brief MainWindow::loadTermFolders
+ * Loads the term folders containing the term definitions.
+ */
+void MainWindow::loadTermFolders()
 {
-    QDir const dir{mainDirectory};
+    QDir const dir{resourcesFolder};
 
+    //If resourcesFolder does not exist, go to the parent directory and create it
     if (!dir.exists())
-        dir.mkdir("../" + mainDirectory); //Go to the parent directory and create the maindDirectory folder
+        dir.mkdir("../" + resourcesFolder);
 
+    //Add every term directory in the resourcesFolder to the combo box
     for(QFileInfo item: dir.entryInfoList())
     {
         if (item.isDir() && item.baseName() != "")
             ui->comboBoxDictionaries->addItem(item.baseName());
-            //Adding qPrintable(item.baseName()) is not neccessary, and additionally, it causes errors displaying russian characters.
+            //Only use qPrintable for debugging
+            //qPrintable(item.baseName()) causes errors displaying cyrillic
     }
 }
 
 /**
  * @brief MainWindow::loadTerms
- * Loads the entries available into the widget list.
- * @param path the file directory where the entries
- * are stored
+ * Loads the terms that are inside the specified term folder.
  */
 void MainWindow::loadTerms()
 {
+    QDir dir{resourcesFolder};
 
-    QDir dir{mainDirectory};
-
-    QString const comboBoxDictionariesContents{ui->comboBoxDictionaries->currentText()};
+    //Change directory to the term folder specified by the combo box
+    QString const comboBoxDictionariesContents{
+        ui->comboBoxDictionaries->currentText()};
     dir.cd(comboBoxDictionariesContents);
 
+    //Disable the Delete and Save buttons because no terms are selected
     ui->pushButtonDelete->setEnabled(false);
     ui->pushButtonSave->setEnabled(false);
 
+    //Create a termList that will be used in the string completer
     QStringList termList;
 
-
+    //Add every file inside the term folder into the widget list
+    //Add every filename to the termList
     for(QFileInfo item: dir.entryInfoList())
     {
         if (item.isFile())
         {
             ui->listWidgetEntries->addItem(item.fileName());
             termList << item.fileName();
+            //Only use qPrintable for debugging
+            //qPrintable(item.baseName()) causes errors displaying cyrillic
         }
-
-        //adding qPrintable(item.fileName()) is not neccessary, and additionally, it causes errors displaying russian characters.
     }
 
-    //this piece takes care of text auto-completion
+    //Create a new string completer using the termList
+    //Disable case sensitivity and set the completer
     mStringCompleter = new QCompleter(termList, this);
     mStringCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     ui->lineEditSearch->setCompleter(mStringCompleter);
 }
 
+/**
+ * @brief MainWindow::MainWindow
+ * Creates the main window and loads the term folders.
+ * @param parent
+ */
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{parent}, ui{new Ui::MainWindow}
 {
     ui->setupUi(this);
-    loadDirectories();
+    loadTermFolders();
 
-    //Unables the Delete and Save buttons at load-up
+    //Disable the Delete and Save buttons because no terms are selected
     ui->pushButtonDelete->setEnabled(false);
     ui->pushButtonSave->setEnabled(false);
 }
@@ -109,24 +131,23 @@ void MainWindow::on_actionExit_triggered()
     close();
 }
 
+/**
+ * @brief MainWindow::on_pushButtonSave_clicked
+ * Saves the edit-box contents into the file
+ * of the currently selected term.
+ */
 void MainWindow::on_pushButtonSave_clicked()
 {
-    /* Uses the text from the selected item to
-     * find the file cotaining the definition.
-     */
+    //Get the name of the currently-selected term
+    //Use the term name to open its corresponding file
     QString currentTerm{ui->listWidgetEntries->currentItem()->text()};
-    QFile file{currentDirectory() + currentTerm};
+    QFile file{currentTermFolder() + currentTerm};
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         return;
 
-    /* Obtains the contents from the text edit
-     * field and makes sure the field is not empty
-     * before trying to write the difinition into
-     * the file.
-     */
-
+    //Get the edit-box conents
+    //Store the contents into the term's file
     QString textEditContents{ui->textEdit->toPlainText()};
-
     QTextStream outStream(&file);
     outStream.setCodec("UTF-8");
     if (textEditContents != "" && textEditContents[0] != " ")
@@ -138,29 +159,27 @@ void MainWindow::on_pushButtonSave_clicked()
 
 /**
  * @brief MainWindow::on_pushButtonAdd_clicked
- * Adds the word written inside of the line edit
- * field into the widget list.
+ * Adds a new term into the widget list.
  */
 void MainWindow::on_pushButtonAdd_clicked()
 {
-    /* Obtains the contents fromt the line edit
-     * field and makes sure the field is not empty
-     * before creating a new file. The terms are
-     * reloaded to include the newly created entry.
-     */
-
+    //Get the new term from the search-box
+    //Check that them name is defined
     QString const lineEditContents{ui->lineEditSearch->text()};
     if (lineEditContents != "" && lineEditContents[0] != " ")
     {
-        QFile file{currentDirectory() + lineEditContents};
-        if(!file.exists()) //prevents files being overwritten
+        //Check that the file does does not exists or it will be overwritten
+        QFile file{currentTermFolder() + lineEditContents};
+        if(!file.exists())
         {
-            if (!file.open(QIODevice::WriteOnly)) //creates a file if it does not exist
+            //Create an empty file by opening it
+            if (!file.open(QIODevice::WriteOnly))
                 return;
             file.close();
         }
     }
 
+    //Clear the widget list and reload it
     ui->listWidgetEntries->clear();
     loadTerms();
 }
@@ -199,7 +218,7 @@ void MainWindow::deleteTerm()
 {
     QString listWidgetItem{ui->listWidgetEntries->currentItem()->text()};
 
-        QFile file{currentDirectory() + listWidgetItem};
+        QFile file{currentTermFolder() + listWidgetItem};
         if(file.exists())
             file.remove();
 
@@ -222,7 +241,7 @@ void MainWindow::on_lineEditSearch_textChanged(const QString &arg1)
 
 void MainWindow::viewContents(QString const &currentTerm)
 {
-    QFile file{currentDirectory() + currentTerm};
+    QFile file{currentTermFolder() + currentTerm};
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
 
@@ -233,7 +252,7 @@ void MainWindow::viewContents(QString const &currentTerm)
      ui->pushButtonSave->setEnabled(true);
      ui->textEdit->setPlainText(contents);
 
-     QFile history{historyDirectory};
+     QFile history{historyFile};
      if (!history.open(QIODevice::ReadWrite | QIODevice::Text))
          return;
 
@@ -287,7 +306,7 @@ void MainWindow::viewContents(QString const &currentTerm)
 
 void MainWindow::on_pushButtonBack_clicked()
 {
-    QFile history{historyDirectory};
+    QFile history{historyFile};
     if (!history.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
     QTextStream outStream(&history);
