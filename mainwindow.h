@@ -9,7 +9,6 @@
 #include <QListWidgetItem>
 #include <QCompleter>
 
-
 namespace Ui {
 class MainWindow;
 }
@@ -49,6 +48,8 @@ private slots:
 
     void deleteTerm();
 
+    void checkHistoryLength(const int &);
+
     void viewContents(QString const &);
 
     void updateHistory(QString const &);
@@ -57,8 +58,6 @@ private slots:
 
     void on_pushButtonBack_clicked();
 
-
-
 private:
     Ui::MainWindow *ui;
     Dictionaries *mDictionaries;
@@ -66,7 +65,6 @@ private:
     AboutApp *mAboutApp;
     Delete *mDelete;
     QCompleter *mStringCompleter;
-
 
 };
 

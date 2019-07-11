@@ -312,7 +312,7 @@ void MainWindow::updateHistory(QString const &givenTerm)
     bool termExists{false};
     const int firstLine{0};
     int termLocation{0};
-    int termNumber{0};
+    int documentLength{0};
     for (QString row: contents.split("\r\n"))
     {
         //Check if the given term exists
@@ -321,10 +321,10 @@ void MainWindow::updateHistory(QString const &givenTerm)
             termExists = true;
             //Indicate that the term is at top
             //of list when equal to 0
-            termLocation = termNumber;
+            termLocation = documentLength;
         }
     //Count the number of terms in the file
-    termNumber++;
+    documentLength++;
     }
 
     //Ignore if the term exists and
@@ -391,6 +391,54 @@ void MainWindow::updateHistory(QString const &givenTerm)
         //Remove and replace the old history file
         history.remove();
         tempFile.rename(historyFile);
+    }
+    checkHistoryLength(documentLength);
+}
+
+/**
+ * @brief MainWindow::checkHistoryLength
+ * Checks the length of the history file and
+ * ensures that it does not grow too large.
+ * @param documentLength the current document
+ * length represented by the number of lines
+ * in the document
+ */
+void MainWindow::checkHistoryLength(const int &documentLength)
+{
+    //Save the las 20 terms whenever the
+    //history goes beyond a max of 50 entries
+    int const maxLength = 50;
+    int const goodLength = 20;
+    if (documentLength > maxLength)
+    {
+        //Create a temporary file
+        //Create an input stream
+        //Set the encoding to utf-8
+        QFile temp{temporaryFile};
+        if (!temp.open(QIODevice::WriteOnly | QIODevice::Text))
+            return;
+        QTextStream inStream(&temp);
+        inStream.setCodec("UTF-8");
+
+        //Open the history file
+        //Create an output file
+        QFile history{historyFile};
+        if (!history.open(QIODevice::ReadOnly | QIODevice::Text))
+            return;
+        QTextStream outSream(&history);
+
+        //Save the first 20 words and ignore the rest
+        for (int i = 0; i < goodLength; i++)
+            inStream << outSream.readLine().toLocal8Bit() << "\n";
+
+        //Save and close the temporary file
+        temp.flush();
+        temp.close();
+
+        //Remove and replace the old history file
+        history.close();
+        history.remove();
+        temp.rename(historyFile);
     }
 }
 
