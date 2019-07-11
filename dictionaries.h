@@ -15,6 +15,8 @@ public:
     explicit Dictionaries(QWidget *parent = nullptr);
     ~Dictionaries();
 
+    void loadTermFolders();
+
 private slots:
 
 private:

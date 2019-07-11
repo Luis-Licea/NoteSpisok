@@ -38,23 +38,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QListWidget" name="listWidget">
-       <item>
-        <property name="text">
-         <string>Bash Terminology</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Русский</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>С++</string>
-        </property>
-       </item>
-      </widget>
+      <widget class="QListWidget" name="listWidget"/>
      </item>
     </layout>
    </item>
