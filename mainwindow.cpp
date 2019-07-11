@@ -12,6 +12,7 @@
 
 QString const resourcesFolder{"resources/"};
 QString const historyFile{"resources/history.txt"};
+QString const temporaryFile{"resources/temp.txt"};
 
 /**
  * @brief MainWindow::currentTermFolder
@@ -184,25 +185,30 @@ void MainWindow::on_pushButtonAdd_clicked()
     loadTerms();
 }
 
+/**
+ * @brief MainWindow::on_listWidgetEntries_itemClicked
+ * Enables the Save and Delete buttons for ther selected
+ * term. Also displays the term's contents, if any.
+ */
 void MainWindow::on_listWidgetEntries_itemClicked()
 {
-
-
+    //Enable the Save and Delete buttons
     ui->pushButtonSave->setEnabled(true);
     ui->pushButtonDelete->setEnabled(true);
 
-    /* Uses the text from the selected item
-     * to find the file name that contains
-     * the definition. The contents are then
-     * displayed.
-     */
-
-    QString const currentTerm {ui->listWidgetEntries->currentItem()->text()};
+    //Get the current term name and view its contents
+    QString const currentTerm{
+        ui->listWidgetEntries->currentItem()->text()};
     viewContents(currentTerm);
 }
 
+/**
+ * @brief MainWindow::on_comboBoxDictionaries_currentTextChanged
+ * Loads the term folder whenever it is selected.
+ */
 void MainWindow::on_comboBoxDictionaries_currentTextChanged()
 {
+    //Clear the list widget and reload it
     ui->listWidgetEntries->clear();
     loadTerms();
 }
@@ -214,14 +220,19 @@ void MainWindow::on_pushButtonDelete_clicked()
     mDelete->show();
 }
 
+/**
+ * @brief MainWindow::deleteTerm
+ * Delets the selected term.
+ */
 void MainWindow::deleteTerm()
 {
+    //Get the selected term name and remove if it exists
     QString listWidgetItem{ui->listWidgetEntries->currentItem()->text()};
+    QFile file{currentTermFolder() + listWidgetItem};
+    if(file.exists())
+        file.remove();
 
-        QFile file{currentTermFolder() + listWidgetItem};
-        if(file.exists())
-            file.remove();
-
+    //Clear the list widget and reload it
     ui->listWidgetEntries->clear();
     loadTerms();
 }
@@ -239,69 +250,148 @@ void MainWindow::on_lineEditSearch_textChanged(const QString &arg1)
 
 }
 
-void MainWindow::viewContents(QString const &currentTerm)
+void MainWindow::viewContents(QString const &givenTerm)
 {
-    QFile file{currentTermFolder() + currentTerm};
+    //Open the given term's file and store its contents
+    QFile file{currentTermFolder() + givenTerm};
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
-
-
     QByteArray contents{file.readAll()};
     file.close();
 
-     ui->pushButtonSave->setEnabled(true);
-     ui->textEdit->setPlainText(contents);
+    //Load the contents and enable the Save button
+    ui->textEdit->setPlainText(contents);
+    ui->pushButtonSave->setEnabled(true);
 
-     QFile history{historyFile};
-     if (!history.open(QIODevice::ReadWrite | QIODevice::Text))
-         return;
+    updateHistory(givenTerm);
+}
 
-     QTextStream inStream(&history);
+/**
+ * @brief MainWindow::updateHistory
+ * Updates the history file and keeps track
+ * of the terms that have been viewed.
+ * @param givenTerm the term name of the viewed
+ * widged list item
+ */
+void MainWindow::updateHistory(QString const &givenTerm)
+{
+    /*Function summary:
+    If the given term exists and is the first one
+    in the history file, then do nothing.
 
-     bool notInHistory = true;
-     int entryNumber = 0;
+    If the given term exists but is not the
+    first one in the history file,
+    create a new temporary file,
+    put the given term at the top of the list,
+    place the rest of the terms beneath it,
+    but remove any duplicates of the given term.
+    Delete the original history file,
+    and rename the temporary history file.
 
-     while (!inStream.atEnd())
-     {
-        if(inStream.readLine() == currentTerm)
-            notInHistory = false;
-        entryNumber++;
-     }
+    If the given term does not exist,
+    create new temporary file,
+    put the given term at the top of the list,
+    place the rest of the terms beneath it,
+    Delete the original history file,
+    and rename the temporary history file.
+   */
 
-     //this is a freaking mess
-     int max = 50;
-     if (entryNumber > max)
-     {
-         inStream.reset();
-         for(int i = 0; i < max; i++)
-         {
+    //Open the history file
+    QFile history{historyFile};
+    if (!history.open(QIODevice::ReadOnly))
+        return;
 
-             QString s;
-             QTextStream t(&history);
-             while(!t.atEnd())
-             {
-                 QString line = t.readLine();
-                 if(i > (max-30))
-                     s.append(line + "\n");
-             }
-             history.resize(0);
-             t << s;
-             history.close();
+    //Create an input stream for the history file
+    //Read all the terms in history file
+    //Encode toLocat8Bit to prevent cyrillic encoding erros
+    //Close the hitory file
+    QTextStream inStream{&history};
+    QString contents{inStream.readAll().toLocal8Bit()};
+    history.close();
 
-         }
-     }
+    bool termExists{false};
+    const int firstLine{0};
+    int termLocation{0};
+    int termNumber{0};
+    for (QString row: contents.split("\r\n"))
+    {
+        //Check if the given term exists
+        if(row == givenTerm)
+        {
+            termExists = true;
+            //Indicate that the term is at top
+            //of list when equal to 0
+            termLocation = termNumber;
+        }
+    //Count the number of terms in the file
+    termNumber++;
+    }
 
-     if (notInHistory)
-     {
-         QTextStream outStream(&history);
-         outStream.setCodec("UTF-8");
-         outStream << currentTerm << "\n";
-     }
+    //Ignore if the term exists and
+    //is the first one in the list
+    if(termExists && termLocation == firstLine) {}
+
+    else if(termExists && termLocation != firstLine)
+    {
+        //Create a temporary file
+        QFile tempFile{temporaryFile};
+        if(!tempFile.open(QIODevice::WriteOnly | QIODevice::Text))
+            return;
+
+        //Create an out stream
+        //Set the encoding to utf-8
+        QTextStream outStream(&tempFile);
+        outStream.setCodec("UTF-8");
+
+        //Put the given term at the top of the list
+        outStream << givenTerm << "\n";
+        for (QString row: contents.split("\r\n"))
+        {
+            //Add the remaining terms into the list but remove
+            //any duplicates of the given term
+            if (row != givenTerm && row != "")
+                outStream << row << "\n";
+        }
+        //Save the new temporary file
+        tempFile.flush();
+        tempFile.close();
+
+        //Remove and replace the old history file
+        history.remove();
+        tempFile.rename(historyFile);
+    }
 
 
 
-     history.flush();
-     history.close();
+    //Add the term if it does not exist
+    else if(!termExists)
+    {
+        //Create a temporary file
+        QFile tempFile{temporaryFile};
+        if(!tempFile.open(QIODevice::WriteOnly | QIODevice::Text))
+            return;
+
+        //Create an out stream
+        //Set the encoding to utf-8
+        QTextStream outStream(&tempFile);
+        outStream.setCodec("UTF-8");
+
+        //Put the given term at the top of the list
+        outStream << givenTerm << "\n";
+        for (QString row: contents.split("\r\n"))
+        {
+            //Add the remaining terms into the list
+            if (row != "")
+                outStream << row << "\n";
+        }
+        //Save the new temporary file
+        tempFile.flush();
+        tempFile.close();
+
+        //Remove and replace the old history file
+        history.remove();
+        tempFile.rename(historyFile);
+    }
 }
 
 void MainWindow::on_pushButtonBack_clicked()
@@ -316,5 +406,4 @@ void MainWindow::on_pushButtonBack_clicked()
     {
         terms.push_back(history.readLine());
     }
-
 }

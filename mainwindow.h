@@ -51,9 +51,13 @@ private slots:
 
     void viewContents(QString const &);
 
+    void updateHistory(QString const &);
+
     void on_lineEditSearch_textChanged(const QString &arg1);
 
     void on_pushButtonBack_clicked();
+
+
 
 private:
     Ui::MainWindow *ui;
