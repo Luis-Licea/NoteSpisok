@@ -7,10 +7,15 @@ Delete::Delete(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Delete)
 {
-    ui->setupUi(this);
+    ui->setupUi(this);  
 }
 
 Delete::~Delete()
 {
     delete ui;
+}
+
+void Delete::receiveTerm(QString termToDelete)
+{
+    ui->label->setText("Delete " + termToDelete + "?");
 }

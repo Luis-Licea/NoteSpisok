@@ -17,8 +17,6 @@ public:
 
     void loadTermFolders();
 
-private slots:
-
 private:
     Ui::Dictionaries *ui;
 };

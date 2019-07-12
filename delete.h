@@ -15,6 +15,9 @@ public:
     explicit Delete(QWidget *parent = nullptr);
     ~Delete();
 
+private slots:
+    void receiveTerm(QString);
+
 private:
     Ui::Delete *ui;
 };

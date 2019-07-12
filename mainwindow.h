@@ -21,6 +21,10 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    //Do not implement signals
+signals:
+    void relayTerm(QString);
+
 private slots:
     void on_actionDictionaries_triggered();
 
