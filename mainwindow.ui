@@ -164,6 +164,7 @@
     <addaction name="separator"/>
     <addaction name="actionAboutApp"/>
     <addaction name="separator"/>
+    <addaction name="actionQuit"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -183,7 +184,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>Quit</string>
    </property>
   </action>
   <action name="actionAboutApp">
@@ -199,6 +200,11 @@
   <action name="actionDictionaries">
    <property name="text">
     <string>Dictionaries</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Close To Tray</string>
    </property>
   </action>
  </widget>

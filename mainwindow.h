@@ -21,8 +21,8 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    //Do not implement signals
 signals:
+    //Do not implement signals
     void relayTerm(QString);
 
 private slots:
@@ -61,6 +61,8 @@ private slots:
     void on_lineEditSearch_textChanged(const QString &arg1);
 
     void on_pushButtonBack_clicked();
+
+    void on_actionQuit_triggered();
 
 private:
     Ui::MainWindow *ui;

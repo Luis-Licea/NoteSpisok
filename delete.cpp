@@ -15,7 +15,7 @@ Delete::~Delete()
     delete ui;
 }
 
-void Delete::receiveTerm(QString termToDelete)
+void Delete::deleteTerm(QString termToDelete)
 {
     ui->label->setText("Delete " + termToDelete + "?");
 }

@@ -32,6 +32,9 @@ QString MainWindow::currentTermFolder() const
  */
 void MainWindow::loadTermFolders()
 {
+    //Clear before adding more folders to the combo box
+    ui->comboBoxDictionaries->clear();
+
     QDir const dir{resourcesFolder};
 
     //If resourcesFolder does not exist, go to the parent directory and create it
@@ -113,6 +116,7 @@ void MainWindow::on_actionDictionaries_triggered()
 {
     mDictionaries = new Dictionaries{this};
     mDictionaries->show();
+    QObject::connect(mDictionaries, SIGNAL(signalLoadTermFolders()), this, SLOT(loadTermFolders()));
 }
 
 void MainWindow::on_actionConfiguration_triggered()
@@ -217,7 +221,7 @@ void MainWindow::on_pushButtonDelete_clicked()
 {
     mDelete = new Delete{this};
     QObject::connect(mDelete,SIGNAL(accepted()), this, SLOT(deleteTerm()));
-    QObject::connect(this, SIGNAL(relayTerm(QString)), mDelete, SLOT(receiveTerm(QString)));
+    QObject::connect(this, SIGNAL(relayTerm(QString)), mDelete, SLOT(deleteTerm(QString)));
     emit relayTerm(ui->listWidgetEntries->currentItem()->text());
     mDelete->show();
 }
@@ -457,3 +461,5 @@ void MainWindow::on_pushButtonBack_clicked()
         terms.push_back(history.readLine());
     }
 }
+
+

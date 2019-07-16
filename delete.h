@@ -16,7 +16,7 @@ public:
     ~Delete();
 
 private slots:
-    void receiveTerm(QString);
+    void deleteTerm(QString);
 
 private:
     Ui::Delete *ui;

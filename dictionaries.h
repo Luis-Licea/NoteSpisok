@@ -17,6 +17,12 @@ public:
 
     void loadTermFolders();
 
+signals:
+    void signalLoadTermFolders();
+
+private slots:
+    void on_pushButtonAdd_clicked();
+
 private:
     Ui::Dictionaries *ui;
 };
