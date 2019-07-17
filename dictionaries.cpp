@@ -4,6 +4,7 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QDebug>
 
 QString const resourcesFolder{"resources/"};
 QString const historyFile{"resources/history.txt"};
@@ -58,3 +59,23 @@ void Dictionaries::on_pushButtonAdd_clicked()
     loadTermFolders();
     emit signalLoadTermFolders();
 }
+
+void Dictionaries::on_pushButtonDelete_clicked()
+{
+    //Check that an item is selected before proceeding
+    if (ui->listWidget->isItemSelected(ui->listWidget->currentItem()))
+    {
+        QString folderToDelete{ui->listWidget->currentItem()->text()};
+
+        QDir folderPath{resourcesFolder + folderToDelete};
+
+        if (folderPath.exists())
+            //Go to the parent folder and delete the folder
+            folderPath.removeRecursively();
+        //Clear the list widget and reload it
+        ui->listWidget->clear();
+        loadTermFolders();
+        emit signalLoadTermFolders();
+    }
+}
+

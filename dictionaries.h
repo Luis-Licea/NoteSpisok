@@ -23,6 +23,8 @@ signals:
 private slots:
     void on_pushButtonAdd_clicked();
 
+    void on_pushButtonDelete_clicked();
+
 private:
     Ui::Dictionaries *ui;
 };

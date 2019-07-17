@@ -136,6 +136,11 @@ void MainWindow::on_actionExit_triggered()
     close();
 }
 
+void MainWindow::on_actionQuit_triggered()
+{
+
+}
+
 /**
  * @brief MainWindow::on_pushButtonSave_clicked
  * Saves the edit-box contents into the file
@@ -461,5 +466,4 @@ void MainWindow::on_pushButtonBack_clicked()
         terms.push_back(history.readLine());
     }
 }
-
 
