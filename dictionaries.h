@@ -2,6 +2,7 @@
 #define DICTIONARIES_H
 
 #include <QDialog>
+#include "rename.h"
 
 namespace Ui {
 class Dictionaries;
@@ -25,8 +26,13 @@ private slots:
 
     void on_pushButtonDelete_clicked();
 
+    void on_pushButtonRename_clicked();
+
+    void renameDictionary(QString);
+
 private:
     Ui::Dictionaries *ui;
+    Rename *mRename;
 };
 
 #endif // DICTIONARIES_H

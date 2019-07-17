@@ -115,6 +115,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_actionDictionaries_triggered()
 {
     mDictionaries = new Dictionaries{this};
+    mDictionaries->setWindowTitle("Dictionaries");
     mDictionaries->show();
     QObject::connect(mDictionaries, SIGNAL(signalLoadTermFolders()), this, SLOT(loadTermFolders()));
 }
@@ -122,12 +123,14 @@ void MainWindow::on_actionDictionaries_triggered()
 void MainWindow::on_actionConfiguration_triggered()
 {
     mConfiguration = new Configuration{this};
+    mConfiguration->setWindowTitle("Configuration");
     mConfiguration->show();
 }
 
 void MainWindow::on_actionAboutApp_triggered()
 {
     mAboutApp = new AboutApp{this};
+    mAboutApp->setWindowTitle("About NoteSpisok");
     mAboutApp->show();
 }
 
@@ -225,6 +228,7 @@ void MainWindow::on_comboBoxDictionaries_currentTextChanged()
 void MainWindow::on_pushButtonDelete_clicked()
 {
     mDelete = new Delete{this};
+    mDelete->setWindowTitle("Delete");
     QObject::connect(mDelete,SIGNAL(accepted()), this, SLOT(deleteTerm()));
     QObject::connect(this, SIGNAL(relayTerm(QString)), mDelete, SLOT(deleteTerm(QString)));
     emit relayTerm(ui->listWidgetEntries->currentItem()->text());

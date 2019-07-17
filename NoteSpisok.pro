@@ -30,21 +30,24 @@ SOURCES += \
         delete.cpp \
         dictionaries.cpp \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        rename.cpp
 
 HEADERS += \
         aboutapp.h \
         configuration.h \
         delete.h \
         dictionaries.h \
-        mainwindow.h
+        mainwindow.h \
+        rename.h
 
 FORMS += \
         aboutapp.ui \
         configuration.ui \
         delete.ui \
         dictionaries.ui \
-        mainwindow.ui
+        mainwindow.ui \
+        rename.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
