@@ -52,11 +52,11 @@ private slots:
 
     void deleteTerm();
 
-    void checkHistoryLength(const int &);
+    void checkHistoryLength(const int &documentLength);
 
-    void viewContents(QString const &, bool const & = false);
+    void viewContents(QString const &currentTerm, bool const &isCurrentItem=false);
 
-    void updateHistory(QString const &);
+    void updateHistory(QString const &currentTerm);
 
     void on_lineEditSearch_textChanged();
 

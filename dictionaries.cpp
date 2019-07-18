@@ -107,14 +107,14 @@ void Dictionaries::on_pushButtonRename_clicked()
  * replace the previos one without touching the dictionary's
  * files.
  */
-void Dictionaries::renameDictionary(QString newDictionaryName)
+void Dictionaries::renameDictionary(QString const &newName)
 {
-    QString currentDictionaryName{ui->listWidget->currentItem()->text()};
+    QString currentName{ui->listWidget->currentItem()->text()};
 
     QDir parentDirectory;
 
     parentDirectory.cd(resourcesFolder);
-    parentDirectory.rename(currentDictionaryName, newDictionaryName);
+    parentDirectory.rename(currentName, newName);
 
     //Clear the list widget and reload it
     ui->listWidget->clear();

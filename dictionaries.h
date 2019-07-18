@@ -28,7 +28,7 @@ private slots:
 
     void on_pushButtonRename_clicked();
 
-    void renameDictionary(QString);
+    void renameDictionary(QString const &newName);
 
 private:
     Ui::Dictionaries *ui;

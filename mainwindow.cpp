@@ -234,8 +234,7 @@ void MainWindow::on_pushButtonDelete_clicked()
 {
     mDelete = new Delete{this};
     mDelete->setWindowTitle("Delete");
-    QObject::connect(mDelete,SIGNAL(accepted()), this, SLOT(deleteTerm()));
-    QObject::connect(this, SIGNAL(relayTerm(QString)), mDelete, SLOT(deleteTerm(QString)));
+    QObject::connect(this, SIGNAL(relayTerm(QString)), mDelete, SLOT(showDeleteWarning(QString)));
     emit relayTerm(ui->listWidgetEntries->currentItem()->text());
     mDelete->show();
 }
@@ -278,12 +277,12 @@ void MainWindow::on_lineEditSearch_textChanged()
  * @brief MainWindow::viewContents
  * Loads the definition of the given term if it
  * exists in the current dicitonary.
- * @param givenTerm the selected or searched term name
+ * @param currentTerm the selected or searched term name
  */
-void MainWindow::viewContents(QString const &givenTerm, bool const &isCurrentTerm)
+void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentItem)
 {
     //Open the given term's file and store its contents
-    QFile file{currentTermFolder() + givenTerm};
+    QFile file{currentTermFolder() + currentTerm};
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
     QByteArray contents{file.readAll()};
@@ -294,9 +293,9 @@ void MainWindow::viewContents(QString const &givenTerm, bool const &isCurrentTer
      * problems because the save function must know which is the
      * current item in order to save contents to it.
     */
-    if (!isCurrentTerm)
+    if (!isCurrentItem)
     {
-        QListWidgetItem *term{ui->listWidgetEntries->findItems(givenTerm, Qt::MatchFixedString).first()};
+        QListWidgetItem *term{ui->listWidgetEntries->findItems(currentTerm, Qt::MatchFixedString).first()};
         ui->listWidgetEntries->setCurrentItem(term);
     }
 
@@ -305,17 +304,16 @@ void MainWindow::viewContents(QString const &givenTerm, bool const &isCurrentTer
     ui->pushButtonSave->setEnabled(true);
     ui->pushButtonDelete->setEnabled(true);
 
-    updateHistory(givenTerm);
+    updateHistory(currentTerm);
 }
 
 /**
  * @brief MainWindow::updateHistory
  * Updates the history file and keeps track
  * of the terms that have been viewed.
- * @param givenTerm the term name of the viewed
- * widged list item
+ * @param currentTerm the selected or searched term name
  */
-void MainWindow::updateHistory(QString const &givenTerm)
+void MainWindow::updateHistory(QString const &currentTerm)
 {
     /*Function summary:
     If the given term exists and is the first one
@@ -358,7 +356,7 @@ void MainWindow::updateHistory(QString const &givenTerm)
     for (QString row: contents.split("\r\n"))
     {
         //Check if the given term exists
-        if(row == givenTerm)
+        if(row == currentTerm)
         {
             termExists = true;
             //Indicate that the term is at top
@@ -386,12 +384,12 @@ void MainWindow::updateHistory(QString const &givenTerm)
         outStream.setCodec("UTF-8");
 
         //Put the given term at the top of the list
-        outStream << givenTerm << "\n";
+        outStream << currentTerm << "\n";
         for (QString row: contents.split("\r\n"))
         {
             //Add the remaining terms into the list but remove
             //any duplicates of the given term
-            if (row != givenTerm && row != "")
+            if (row != currentTerm && row != "")
                 outStream << row << "\n";
         }
         //Save the new temporary file
@@ -419,7 +417,7 @@ void MainWindow::updateHistory(QString const &givenTerm)
         outStream.setCodec("UTF-8");
 
         //Put the given term at the top of the list
-        outStream << givenTerm << "\n";
+        outStream << currentTerm << "\n";
         for (QString row: contents.split("\r\n"))
         {
             //Add the remaining terms into the list
