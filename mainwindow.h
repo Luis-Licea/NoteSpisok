@@ -54,7 +54,7 @@ private slots:
 
     void checkHistoryLength(const int &);
 
-    void viewContents(QString const &, bool const &);
+    void viewContents(QString const &, bool const & = false);
 
     void updateHistory(QString const &);
 

@@ -179,11 +179,11 @@ void MainWindow::on_pushButtonAdd_clicked()
 {
     //Get the new term from the search-box
     //Check that them name is defined
-    QString const lineEditContents{ui->lineEditSearch->text()};
-    if (lineEditContents != "" && lineEditContents[0] != " ")
+    QString const newTerm{ui->lineEditSearch->text()};
+    if (newTerm != "" && newTerm[0] != " ")
     {
         //Check that the file does does not exists or it will be overwritten
-        QFile file{currentTermFolder() + lineEditContents};
+        QFile file{currentTermFolder() + newTerm};
         if(!file.exists())
         {
             //Create an empty file by opening it
@@ -196,6 +196,9 @@ void MainWindow::on_pushButtonAdd_clicked()
     //Clear the widget list and reload it
     ui->listWidgetEntries->clear();
     loadTerms();
+
+    //Set the new term as the current item
+    viewContents(newTerm, false);
 }
 
 /**
