@@ -9,6 +9,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QList>
+#include <QListWidgetItem>
 
 QString const resourcesFolder{"resources/"};
 QString const historyFile{"resources/history.txt"};
@@ -204,14 +205,15 @@ void MainWindow::on_pushButtonAdd_clicked()
  */
 void MainWindow::on_listWidgetEntries_itemClicked()
 {
-    //Enable the Save and Delete buttons
-    ui->pushButtonSave->setEnabled(true);
-    ui->pushButtonDelete->setEnabled(true);
-
-    //Get the current term name and view its contents
+    //Get the current term name and view its definition
+    /* Uses the text from the selected item
+     * to find the file name that contains
+     * the definition. The contents are then
+     * displayed.
+     */
     QString const currentTerm{
         ui->listWidgetEntries->currentItem()->text()};
-    viewContents(currentTerm);
+    viewContents(currentTerm, true);
 }
 
 /**
@@ -252,20 +254,30 @@ void MainWindow::deleteTerm()
     loadTerms();
 }
 
-void MainWindow::on_lineEditSearch_textChanged(const QString &arg1)
+/**
+ * @brief MainWindow::on_lineEditSearch_textChanged
+ * Displays any matching definitions for the term written
+ * in the search box.
+ */
+void MainWindow::on_lineEditSearch_textChanged()
 {
+    //Get the searched term and view its definition
     /* Uses the text from the selected item
      * to find the file name that contains
      * the definition. The contents are then
      * displayed.
      */
-
     QString const currentTerm {ui->lineEditSearch->text()};
-    viewContents(currentTerm);
-
+    viewContents(currentTerm, false);
 }
 
-void MainWindow::viewContents(QString const &givenTerm)
+/**
+ * @brief MainWindow::viewContents
+ * Loads the definition of the given term if it
+ * exists in the current dicitonary.
+ * @param givenTerm the selected or searched term name
+ */
+void MainWindow::viewContents(QString const &givenTerm, bool const &isCurrentTerm)
 {
     //Open the given term's file and store its contents
     QFile file{currentTermFolder() + givenTerm};
@@ -274,9 +286,21 @@ void MainWindow::viewContents(QString const &givenTerm)
     QByteArray contents{file.readAll()};
     file.close();
 
-    //Load the contents and enable the Save button
+    //Set the searched item as the current item
+    /* Not setting a searched item as the current item may cause
+     * problems because the save function must know which is the
+     * current item in order to save contents to it.
+    */
+    if (!isCurrentTerm)
+    {
+        QListWidgetItem *term{ui->listWidgetEntries->findItems(givenTerm, Qt::MatchFixedString).first()};
+        ui->listWidgetEntries->setCurrentItem(term);
+    }
+
+    //Load the contents and enable the save and delete buttons
     ui->textEdit->setPlainText(contents);
     ui->pushButtonSave->setEnabled(true);
+    ui->pushButtonDelete->setEnabled(true);
 
     updateHistory(givenTerm);
 }

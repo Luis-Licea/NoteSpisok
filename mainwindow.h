@@ -54,11 +54,11 @@ private slots:
 
     void checkHistoryLength(const int &);
 
-    void viewContents(QString const &);
+    void viewContents(QString const &, bool const &);
 
     void updateHistory(QString const &);
 
-    void on_lineEditSearch_textChanged(const QString &arg1);
+    void on_lineEditSearch_textChanged();
 
     void on_pushButtonBack_clicked();
 
