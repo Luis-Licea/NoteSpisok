@@ -234,6 +234,7 @@ void MainWindow::on_pushButtonDelete_clicked()
 {
     mDelete = new Delete{this};
     mDelete->setWindowTitle("Delete");
+    QObject::connect(mDelete, SIGNAL(accepted()), this, SLOT(deleteTerm()));
     QObject::connect(this, SIGNAL(relayTerm(QString)), mDelete, SLOT(showDeleteWarning(QString)));
     emit relayTerm(ui->listWidgetEntries->currentItem()->text());
     mDelete->show();
