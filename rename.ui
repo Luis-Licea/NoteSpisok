@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>New Dictionary Name:</string>
+        <string>New Name:</string>
        </property>
       </widget>
      </item>

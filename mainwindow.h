@@ -6,6 +6,7 @@
 #include "dictionaries.h"
 #include "aboutapp.h"
 #include "delete.h"
+#include "rename.h"
 #include <QListWidgetItem>
 #include <QCompleter>
 
@@ -58,11 +59,15 @@ private slots:
 
     void updateHistory(QString const &currentTerm);
 
+    void renameTerm(QString const &newName);
+
     void on_lineEditSearch_textChanged();
 
     void on_pushButtonBack_clicked();
 
     void on_actionQuit_triggered();
+
+    void on_pushButtonRename_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -71,6 +76,7 @@ private:
     AboutApp *mAboutApp;
     Delete *mDelete;
     QCompleter *mStringCompleter;
+    Rename *mRename;
 
 };
 

@@ -65,9 +65,10 @@ void MainWindow::loadTerms()
         ui->comboBoxDictionaries->currentText()};
     dir.cd(comboBoxDictionariesContents);
 
-    //Disable the Delete and Save buttons because no terms are selected
+    //Disable the delete, save, and rename buttons because no terms are selected
     ui->pushButtonDelete->setEnabled(false);
     ui->pushButtonSave->setEnabled(false);
+    ui->pushButtonRename->setEnabled(false);
 
     //Create a termList that will be used in the string completer
     QStringList termList;
@@ -300,10 +301,11 @@ void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentI
         ui->listWidgetEntries->setCurrentItem(term);
     }
 
-    //Load the contents and enable the save and delete buttons
+    //Load the contents and enable the save, delete, and rename buttons
     ui->textEdit->setPlainText(contents);
     ui->pushButtonSave->setEnabled(true);
     ui->pushButtonDelete->setEnabled(true);
+    ui->pushButtonRename->setEnabled(true);
 
     updateHistory(currentTerm);
 }
@@ -497,3 +499,38 @@ void MainWindow::on_pushButtonBack_clicked()
     }
 }
 
+/**
+ * @brief MainWindow::on_pushButtonRename_clicked
+ * Launches a dialog window for renaming.
+ */
+void MainWindow::on_pushButtonRename_clicked()
+{
+    mRename = new Rename{this};
+    QObject::connect(mRename, SIGNAL(relayName(QString)), this, SLOT(renameTerm(QString)));
+    mRename->setWindowTitle("Rename");
+    mRename->show();
+}
+
+/**
+ * @brief MainWindow::renameTerm
+ * Renames the current item. The definition is saved
+ * before renaming so that work is not lost.
+ * @param newName the new term name
+ */
+void MainWindow::renameTerm(QString const &newName)
+{
+    //Save definition before renaming file
+    on_pushButtonSave_clicked();
+
+    //Get name of the current term and rename it
+    QString currentTerm{ui->listWidgetEntries->currentItem()->text()};
+    QFile file{currentTermFolder() + currentTerm};
+    file.rename(currentTermFolder() + newName);
+
+    //Clear the widget list and reload it
+    ui->listWidgetEntries->clear();
+    loadTerms();
+
+    //Set the renamed term as the current item
+    viewContents(newName, false);
+}
