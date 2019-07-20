@@ -66,9 +66,11 @@ void MainWindow::loadTerms()
     dir.cd(comboBoxDictionariesContents);
 
     //Disable the delete, save, and rename buttons because no terms are selected
+    //Disable text editing because no terms are selected
     ui->pushButtonDelete->setEnabled(false);
     ui->pushButtonSave->setEnabled(false);
     ui->pushButtonRename->setEnabled(false);
+    ui->textEdit->setEnabled(false);
 
     //Create a termList that will be used in the string completer
     QStringList termList;
@@ -103,10 +105,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     loadTermFolders();
-
-    //Disable the Delete and Save buttons because no terms are selected
-    ui->pushButtonDelete->setEnabled(false);
-    ui->pushButtonSave->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -302,10 +300,12 @@ void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentI
     }
 
     //Load the contents and enable the save, delete, and rename buttons
+    //Enable text editing because a term has been selected
     ui->textEdit->setPlainText(contents);
     ui->pushButtonSave->setEnabled(true);
     ui->pushButtonDelete->setEnabled(true);
     ui->pushButtonRename->setEnabled(true);
+    ui->textEdit->setEnabled(true);
 
     updateHistory(currentTerm);
 }
