@@ -62,9 +62,29 @@ void Dictionaries::on_pushButtonAdd_clicked()
 
 /**
  * @brief Dictionaries::on_pushButtonDelete_clicked
- * Deletes the selected dictionary and all of its contents.
+ * Launches a dialog window for deleting a dictionary.
  */
 void Dictionaries::on_pushButtonDelete_clicked()
+{
+    //Create a warning window
+    mDelete = new Delete{this};
+    mDelete->setWindowTitle("Delete");
+
+    //Connect the windows to display the dictionary to be deleted
+    QObject::connect(this, SIGNAL(relayDictionary(QString)), mDelete, SLOT(showDeleteWarning(QString)));
+    //Connect the windows to delete the dicitonary when the user accepts
+    QObject::connect(mDelete, SIGNAL(accepted()), SLOT(deleteDictionary()));
+    //Emit the signal to create the warning
+    emit relayDictionary(ui->listWidget->currentItem()->text());
+    //Display the warning
+    mDelete->show();
+}
+
+/**
+ * @brief Dictionaries::deleteDictionary
+ * Deletes the selected dictionary and all of its contents.
+ */
+void Dictionaries::deleteDictionary()
 {
     //Check that an item is selected before proceeding
     if (ui->listWidget->isItemSelected(ui->listWidget->currentItem()))

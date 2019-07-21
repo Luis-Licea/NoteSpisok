@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "rename.h"
+#include "delete.h"
 
 namespace Ui {
 class Dictionaries;
@@ -19,6 +20,8 @@ public:
     void loadTermFolders();
 
 signals:
+    void relayDictionary(QString);
+
     void signalLoadTermFolders();
 
 private slots:
@@ -30,9 +33,12 @@ private slots:
 
     void renameDictionary(QString const &newName);
 
+    void deleteDictionary();
+
 private:
     Ui::Dictionaries *ui;
     Rename *mRename;
+    Delete *mDelete;
 };
 
 #endif // DICTIONARIES_H
