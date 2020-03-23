@@ -15,6 +15,7 @@ public:
     explicit AboutApp(QWidget *parent = nullptr);
     ~AboutApp();
 
+
 private:
     Ui::AboutApp *ui;
 };

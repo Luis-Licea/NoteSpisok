@@ -517,7 +517,6 @@ void MainWindow::on_pushButtonBack_clicked()
     QFile history{historyFile};
     if (!history.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
-    QTextStream outStream(&history);
 
     QList<QString> terms;
     while(!history.atEnd())
