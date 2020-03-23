@@ -311,6 +311,31 @@ void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentI
 }
 
 /**
+ * @brief MainWindow::viewContents
+ * Loads the definition of the given term if it
+ * exists in the specified path
+ * @param termPath the relative path of the term's location,
+ * where the parent folder is the resources folder
+ */
+void MainWindow::viewContents(QString const &termPath)
+{
+    //Take the path and split it into three parts, like so:
+    //"resources" "dictionary name" "term name"
+    QStringList parts = termPath.split(QRegExp("/"));
+    qDebug() << parts;
+    QString dictionary = parts[1];
+    QString term = parts[2];
+
+    //Set the dictionary that contains the term
+    /* Once the dictionary has been set, its terms should
+     * be loaded automatically because of the funciton
+     * on_comboBoxDictionaries_currentTextChanged.
+     */
+    ui->comboBoxDictionaries->setCurrentText(dictionary);
+    viewContents(term, false);
+}
+
+/**
  * @brief MainWindow::updateHistory
  * Updates the history file and keeps track
  * of the terms that have been viewed.
@@ -356,10 +381,11 @@ void MainWindow::updateHistory(QString const &currentTerm)
     const int firstLine{0};
     int termLocation{0};
     int documentLength{0};
+    QString term = currentTermFolder() + currentTerm;
     for (QString row: contents.split("\r\n"))
     {
         //Check if the given term exists
-        if(row == currentTerm)
+        if(row == term)
         {
             termExists = true;
             //Indicate that the term is at top
@@ -387,12 +413,12 @@ void MainWindow::updateHistory(QString const &currentTerm)
         outStream.setCodec("UTF-8");
 
         //Put the given term at the top of the list
-        outStream << currentTerm << "\n";
+        outStream << term << "\n";
         for (QString row: contents.split("\r\n"))
         {
             //Add the remaining terms into the list but remove
-            //any duplicates of the given term
-            if (row != currentTerm && row != "")
+            //any duplicates of the given term or empty lines
+            if (row != term && row != "")
                 outStream << row << "\n";
         }
         //Save the new temporary file
@@ -420,7 +446,7 @@ void MainWindow::updateHistory(QString const &currentTerm)
         outStream.setCodec("UTF-8");
 
         //Put the given term at the top of the list
-        outStream << currentTerm << "\n";
+        outStream << term << "\n";
         for (QString row: contents.split("\r\n"))
         {
             //Add the remaining terms into the list
@@ -487,6 +513,7 @@ void MainWindow::checkHistoryLength(const int &documentLength)
 
 void MainWindow::on_pushButtonBack_clicked()
 {
+    //Open the history file in text mode
     QFile history{historyFile};
     if (!history.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
@@ -495,8 +522,17 @@ void MainWindow::on_pushButtonBack_clicked()
     QList<QString> terms;
     while(!history.atEnd())
     {
-        terms.push_back(history.readLine());
+        terms.push_back(history.readLine().trimmed());
     }
+    int static i{0};
+
+    //Icrease i, the line number in the the history file
+    if (i < terms.length())
+        viewContents(terms[i++]);
+
+    //Shows the line number i of the term, and displays the term
+    qDebug() << i;
+    qDebug() << terms[i-1];
 }
 
 /**

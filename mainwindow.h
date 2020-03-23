@@ -55,7 +55,9 @@ private slots:
 
     void checkHistoryLength(const int &documentLength);
 
-    void viewContents(QString const &currentTerm, bool const &isCurrentItem=false);
+    void viewContents(QString const &currentTerm, bool const &isCurrentItem);
+
+    void viewContents(QString const &termPath);
 
     void updateHistory(QString const &currentTerm);
 
