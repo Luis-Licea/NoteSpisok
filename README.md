@@ -1,6 +1,6 @@
 # NoteSpisok
 
-NoneSpisok is a program designed for keeping notes, be it for languages, school, or programming. 
+NoteSpisok is a program designed for keeping notes, be it for languages, school, or programming. 
 
 ## Testing and Compiling
 
