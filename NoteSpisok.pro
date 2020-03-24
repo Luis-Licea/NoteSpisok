@@ -9,7 +9,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = untitled
+TARGET = NoteSpisok
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -56,3 +56,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES +=
+
+win32:RC_ICONS += NoteSpisok.ico
