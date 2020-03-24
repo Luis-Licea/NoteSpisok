@@ -14,6 +14,7 @@
 QString const resourcesFolder{"resources/"};
 QString const historyFile{"resources/history.txt"};
 QString const temporaryFile{"resources/temp.txt"};
+int static historyEntry{-1};
 
 /**
  * @brief MainWindow::currentTermFolder
@@ -139,11 +140,6 @@ void MainWindow::on_actionExit_triggered()
     close();
 }
 
-void MainWindow::on_actionQuit_triggered()
-{
-
-}
-
 /**
  * @brief MainWindow::on_pushButtonSave_clicked
  * Saves the edit-box contents into the file
@@ -197,7 +193,8 @@ void MainWindow::on_pushButtonAdd_clicked()
     loadTerms();
 
     //Set the new term as the current item
-    viewContents(newTerm, false);
+    //And add new term to history file
+    viewContents(newTerm, false, true);
 }
 
 /**
@@ -215,7 +212,9 @@ void MainWindow::on_listWidgetEntries_itemClicked()
      */
     QString const currentTerm{
         ui->listWidgetEntries->currentItem()->text()};
-    viewContents(currentTerm, true);
+
+    //View and add clicked term to history file
+    viewContents(currentTerm, true, true);
 }
 
 /**
@@ -270,7 +269,10 @@ void MainWindow::on_lineEditSearch_textChanged()
      * displayed.
      */
     QString const currentTerm {ui->lineEditSearch->text()};
-    viewContents(currentTerm, false);
+
+    //Set the searched term as the current item
+    //And add the searched term to history file
+    viewContents(currentTerm, false, true);
 }
 
 /**
@@ -278,8 +280,14 @@ void MainWindow::on_lineEditSearch_textChanged()
  * Loads the definition of the given term if it
  * exists in the current dicitonary.
  * @param currentTerm the selected or searched term name
+ * @param isCurrentItem whether the term of interest is currently
+ * selected (if it is not, it will be set as the current item)
+ * @param historyUpdateNeeded whether it is necessary to update
+ * the history file (updating the history file when going back
+ * and forth from term to term would make it difficult to
+ * navigate the terms, so the history file should not be updated)
  */
-void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentItem)
+void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentItem, bool const &historyUpdateNeeded)
 {
     //Open the given term's file and store its contents
     QFile file{currentTermFolder() + currentTerm};
@@ -307,7 +315,13 @@ void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentI
     ui->pushButtonRename->setEnabled(true);
     ui->textEdit->setEnabled(true);
 
-    updateHistory(currentTerm);
+    //If the history file is updated, reset the history entry number
+    //back to zero, so that the the user can only see previous terms
+    if (historyUpdateNeeded == true)
+    {
+        updateHistory(currentTerm);
+        historyEntry = 0;
+    }
 }
 
 /**
@@ -322,7 +336,7 @@ void MainWindow::viewContents(QString const &termPath)
     //Take the path and split it into three parts, like so:
     //"resources" "dictionary name" "term name"
     QStringList parts = termPath.split(QRegExp("/"));
-    qDebug() << parts;
+    qDebug() << historyEntry << parts;
     QString dictionary = parts[1];
     QString term = parts[2];
 
@@ -332,7 +346,10 @@ void MainWindow::viewContents(QString const &termPath)
      * on_comboBoxDictionaries_currentTextChanged.
      */
     ui->comboBoxDictionaries->setCurrentText(dictionary);
-    viewContents(term, false);
+
+    //Set the term as the current item
+    //But do not add the term to history file
+    viewContents(term, false, false);
 }
 
 /**
@@ -511,27 +528,57 @@ void MainWindow::checkHistoryLength(const int &documentLength)
     }
 }
 
-void MainWindow::on_pushButtonBack_clicked()
+/**
+ * @brief MainWindow::getHistoryList
+ * Gets the contents of the history file and stores
+ * them into the provided variable
+ * @param terms the list where all the terms in the
+ * history file will be stored
+ */
+void MainWindow::getHistoryList(QList<QString> &terms)
 {
     //Open the history file in text mode
     QFile history{historyFile};
     if (!history.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
 
-    QList<QString> terms;
+    //Save every line of the history file into the terms list
     while(!history.atEnd())
     {
         terms.push_back(history.readLine().trimmed());
     }
-    int static i{0};
+}
 
-    //Icrease i, the line number in the the history file
-    if (i < terms.length())
-        viewContents(terms[i++]);
+/**
+ * @brief MainWindow::on_pushButtonBack_clicked
+ * Goes back to the to the last terms seen, without
+ * updating the history file.
+ */
+void MainWindow::on_pushButtonBack_clicked()
+{
+    //Obtain all the terms in the history file
+    QList<QString> terms;
+    getHistoryList(terms);
 
-    //Shows the line number i of the term, and displays the term
-    qDebug() << i;
-    qDebug() << terms[i-1];
+    //Icrease historyEntry to point to previoius term
+    if (historyEntry < terms.length() - 1)
+        viewContents(terms[++historyEntry]);
+}
+
+/**
+ * @brief MainWindow::on_pushButtonNext_clicked
+ * Comes back to the to the first terms seen, without
+ * updating the history file.
+ */
+void MainWindow::on_pushButtonNext_clicked()
+{
+    //Obtain all the terms in the history file
+    QList<QString> terms;
+    getHistoryList(terms);
+
+    //Decrease historyEntry to point to next term
+    if (historyEntry > 0)
+        viewContents(terms[--historyEntry]);
 }
 
 /**
@@ -567,5 +614,7 @@ void MainWindow::renameTerm(QString const &newName)
     loadTerms();
 
     //Set the renamed term as the current item
-    viewContents(newName, false);
+    //And add the renamed term to the history file
+    viewContents(newName, false, true);
 }
+

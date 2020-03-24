@@ -177,7 +177,6 @@
     <addaction name="separator"/>
     <addaction name="actionAboutApp"/>
     <addaction name="separator"/>
-    <addaction name="actionQuit"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>

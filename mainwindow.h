@@ -55,7 +55,7 @@ private slots:
 
     void checkHistoryLength(const int &documentLength);
 
-    void viewContents(QString const &currentTerm, bool const &isCurrentItem);
+    void viewContents(QString const &currentTerm, bool const &isCurrentItem, bool const &historyUpdateNeeded);
 
     void viewContents(QString const &termPath);
 
@@ -65,9 +65,11 @@ private slots:
 
     void on_lineEditSearch_textChanged();
 
+    void getHistoryList(QList<QString> &terms);
+
     void on_pushButtonBack_clicked();
 
-    void on_actionQuit_triggered();
+    void on_pushButtonNext_clicked();
 
     void on_pushButtonRename_clicked();
 
