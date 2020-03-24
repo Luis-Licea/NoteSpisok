@@ -381,9 +381,9 @@ void MainWindow::updateHistory(QString const &currentTerm)
     and rename the temporary history file.
    */
 
-    //Open the history file
+    //Open the history file. If does not exist, create it
     QFile history{historyFile};
-    if (!history.open(QIODevice::ReadOnly))
+    if (!history.open(QIODevice::ReadWrite))
         return;
 
     //Create an input stream for the history file
