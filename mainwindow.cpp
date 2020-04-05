@@ -11,21 +11,38 @@
 #include <QList>
 #include <QListWidgetItem>
 
+//All the dictionaries are saved in the resources folder
 QString const resourcesFolder{"resources/"};
+
+//The history file keeps track of viewed terms
 QString const historyFile{"resources/history.txt"};
-QString const temporaryFile{"resources/temp.txt"};
+
+//Keep track of the term of interest inside the history file
 int static historyEntry{-1};
+
+//The temp file is used while saving files
+QString const temporaryFile{"resources/temp.txt"};
+
+//Keep track of the last dictionary viewed
+QString static lastDictionary;
+
+//Keep track of the last term viewed
+QString static lastTerm;
 
 /**
  * @brief MainWindow::currentTermFolder
  * Returns the current folder where terms are being saved.
+ * @param dictionary the dictionary, if any, where the
+ * term of interest is stored
  * @return the current folder where terms are being saved
  */
-QString MainWindow::currentTermFolder() const
+QString MainWindow::currentTermFolder(QString const &dictionary) const
 {
-    //Obtain the current folder name from the combo box name
-    QString currentTermFolder{ui->comboBoxDictionaries->currentText()};
-    return resourcesFolder + currentTermFolder + "/";
+    //If a target dictionary is not provided then obtain
+    //the current dictionary name from the combo box name
+    if (dictionary.isNull())
+        return resourcesFolder + ui->comboBoxDictionaries->currentText() + "/";
+    return resourcesFolder + dictionary + "/";
 }
 
 /**
@@ -113,6 +130,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/**
+ * @brief MainWindow::on_actionDictionaries_triggered
+ * Opens a window where dictionaries can be added,
+ * deleted, and renamed.
+ */
 void MainWindow::on_actionDictionaries_triggered()
 {
     mDictionaries = new Dictionaries{this};
@@ -121,6 +143,11 @@ void MainWindow::on_actionDictionaries_triggered()
     QObject::connect(mDictionaries, SIGNAL(signalLoadTermFolders()), this, SLOT(loadTermFolders()));
 }
 
+/**
+ * @brief MainWindow::on_actionConfiguration_triggered
+ * Opens a window showing the configurations available
+ * for the program.
+ */
 void MainWindow::on_actionConfiguration_triggered()
 {
     mConfiguration = new Configuration{this};
@@ -128,6 +155,11 @@ void MainWindow::on_actionConfiguration_triggered()
     mConfiguration->show();
 }
 
+/**
+ * @brief MainWindow::on_actionAboutApp_triggered
+ * Opens a window showing information about the
+ * program.
+ */
 void MainWindow::on_actionAboutApp_triggered()
 {
     mAboutApp = new AboutApp{this};
@@ -135,32 +167,38 @@ void MainWindow::on_actionAboutApp_triggered()
     mAboutApp->show();
 }
 
+/**
+ * @brief MainWindow::on_actionExit_triggered
+ * Closes the program entirely.
+ */
 void MainWindow::on_actionExit_triggered()
 {
+    //Save current term definition before exiting
+    on_pushButtonSave_clicked();
+
     close();
 }
 
 /**
  * @brief MainWindow::on_pushButtonSave_clicked
  * Saves the edit-box contents into the file
- * of the currently selected term.
+ * of the last-viewed term.
  */
 void MainWindow::on_pushButtonSave_clicked()
 {
-    //Get the name of the currently-selected term
+    //Get the name of the last-viewed term
     //Use the term name to open its corresponding file
-    QString currentTerm{ui->listWidgetEntries->currentItem()->text()};
-    QFile file{currentTermFolder() + currentTerm};
+    QFile file{currentTermFolder(lastDictionary) + lastTerm};
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         return;
 
-    //Get the edit-box conents
+    //Get the edit-box contents
     //Store the contents into the term's file
     QString textEditContents{ui->textEdit->toPlainText()};
     QTextStream outStream(&file);
     outStream.setCodec("UTF-8");
     if (textEditContents != "" && textEditContents[0] != " ")
-        outStream << textEditContents << "\n";
+        outStream << textEditContents;
 
     file.flush();
     file.close();
@@ -172,6 +210,11 @@ void MainWindow::on_pushButtonSave_clicked()
  */
 void MainWindow::on_pushButtonAdd_clicked()
 {
+    //Save current term definition before adding another term
+    //Do not save unless an item is selected
+    if (ui->listWidgetEntries->isItemSelected(ui->listWidgetEntries->currentItem()))
+        on_pushButtonSave_clicked();
+
     //Get the new term from the search-box
     //Check that them name is defined
     QString const newTerm{ui->lineEditSearch->text()};
@@ -213,8 +256,13 @@ void MainWindow::on_listWidgetEntries_itemClicked()
     QString const currentTerm{
         ui->listWidgetEntries->currentItem()->text()};
 
+    //If the same term has been clicked, save its contents,
+    //otherwise the file will be loaded again and changes lost
+    if (currentTerm == lastTerm)
+        on_pushButtonSave_clicked();
+
     //View and add clicked term to history file
-    viewContents(currentTerm, true, true);
+    viewContents(currentTerm, true, true, true);
 }
 
 /**
@@ -223,6 +271,11 @@ void MainWindow::on_listWidgetEntries_itemClicked()
  */
 void MainWindow::on_comboBoxDictionaries_currentTextChanged()
 {
+    //Save current term definition before changing dictionaries,
+    //and save definition in the last dictionary and term visited
+    if (ui->listWidgetEntries->isItemSelected(ui->listWidgetEntries->currentItem()))
+        on_pushButtonSave_clicked();
+
     //Clear the list widget and reload it
     ui->listWidgetEntries->clear();
     loadTerms();
@@ -270,9 +323,14 @@ void MainWindow::on_lineEditSearch_textChanged()
      */
     QString const currentTerm {ui->lineEditSearch->text()};
 
+    //If the same term has looked up, save its contents,
+    //otherwise the file will be loaded again and changes lost
+    if (currentTerm == lastTerm)
+        on_pushButtonSave_clicked();
+
     //Set the searched term as the current item
     //And add the searched term to history file
-    viewContents(currentTerm, false, true);
+    viewContents(currentTerm, false, true, true);
 }
 
 /**
@@ -286,8 +344,16 @@ void MainWindow::on_lineEditSearch_textChanged()
  * the history file (updating the history file when going back
  * and forth from term to term would make it difficult to
  * navigate the terms, so the history file should not be updated)
+ * @param savePreviousTermNeeded whether it is necessary to save
+ * the term before viewing another one (some functions take care
+ * of saving the term, while other do not, so those functions
+ * that do not save the term should mark this as true as a
+ * security measure).
  */
-void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentItem, bool const &historyUpdateNeeded)
+void MainWindow::viewContents(QString const &currentTerm,
+                              bool isCurrentItem,
+                              bool historyUpdateNeeded,
+                              bool savePreviousTermNeeded)
 {
     //Open the given term's file and store its contents
     QFile file{currentTermFolder() + currentTerm};
@@ -307,6 +373,23 @@ void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentI
         ui->listWidgetEntries->setCurrentItem(term);
     }
 
+    if (savePreviousTermNeeded)
+    {
+        //Save current term definition before loading another term
+        //Save if the item clicked is different in name or dictionary
+        //from the current one
+        //qDebug() << "current item: " << ui->listWidgetEntries->currentItem()->text();
+        if (ui->listWidgetEntries->currentItem()->text() != lastTerm ||
+                ui->comboBoxDictionaries->currentText() != lastDictionary)
+        {
+            //Check if term still exists, and if it does, save it
+            QFile file{currentTermFolder(lastDictionary) + lastTerm};
+            //qDebug() << file.fileName();
+            if (file.exists())
+                on_pushButtonSave_clicked();
+        }
+    }
+
     //Load the contents and enable the save, delete, and rename buttons
     //Enable text editing because a term has been selected
     ui->textEdit->setPlainText(contents);
@@ -322,6 +405,14 @@ void MainWindow::viewContents(QString const &currentTerm, bool const &isCurrentI
         updateHistory(currentTerm);
         historyEntry = 0;
     }
+
+    //Stores the name of the last dictionary that has been visited
+    lastDictionary = ui->comboBoxDictionaries->currentText();
+    //qDebug() << "last dictionary: " << lastDictionary;
+
+    //Keep track of the last item that has been clicked
+    lastTerm = currentTerm;
+    //qDebug() << "last term: " << lastTerm;
 }
 
 /**
@@ -336,7 +427,7 @@ void MainWindow::viewContents(QString const &termPath)
     //Take the path and split it into three parts, like so:
     //"resources" "dictionary name" "term name"
     QStringList parts = termPath.split(QRegExp("/"));
-    qDebug() << historyEntry << parts;
+    //qDebug() << historyEntry << parts;
     QString dictionary = parts[1];
     QString term = parts[2];
 
@@ -358,7 +449,7 @@ void MainWindow::viewContents(QString const &termPath)
  * of the terms that have been viewed.
  * @param currentTerm the selected or searched term name
  */
-void MainWindow::updateHistory(QString const &currentTerm)
+void MainWindow::updateHistory(QString const &currentTerm) const
 {
     /*Function summary:
     If the given term exists and is the first one
@@ -447,8 +538,6 @@ void MainWindow::updateHistory(QString const &currentTerm)
         tempFile.rename(historyFile);
     }
 
-
-
     //Add the term if it does not exist
     else if(!termExists)
     {
@@ -489,7 +578,7 @@ void MainWindow::updateHistory(QString const &currentTerm)
  * length represented by the number of lines
  * in the document
  */
-void MainWindow::checkHistoryLength(const int &documentLength)
+void MainWindow::checkHistoryLength(const int documentLength) const
 {
     //Save the las 20 terms whenever the
     //history goes beyond a max of 50 entries
@@ -556,6 +645,10 @@ void MainWindow::getHistoryList(QList<QString> &terms)
  */
 void MainWindow::on_pushButtonBack_clicked()
 {
+    //Save current term definition before going back
+    if (ui->listWidgetEntries->isItemSelected(ui->listWidgetEntries->currentItem()))
+        on_pushButtonSave_clicked();
+
     //Obtain all the terms in the history file
     QList<QString> terms;
     getHistoryList(terms);
@@ -572,6 +665,10 @@ void MainWindow::on_pushButtonBack_clicked()
  */
 void MainWindow::on_pushButtonNext_clicked()
 {
+    //Save current term definition before returning
+    if (ui->listWidgetEntries->isItemSelected(ui->listWidgetEntries->currentItem()))
+        on_pushButtonSave_clicked();
+
     //Obtain all the terms in the history file
     QList<QString> terms;
     getHistoryList(terms);
@@ -601,7 +698,7 @@ void MainWindow::on_pushButtonRename_clicked()
  */
 void MainWindow::renameTerm(QString const &newName)
 {
-    //Save definition before renaming file
+    //Save current term definition before renaming term
     on_pushButtonSave_clicked();
 
     //Get name of the current term and rename it

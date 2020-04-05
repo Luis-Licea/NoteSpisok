@@ -47,19 +47,22 @@ private slots:
 
     void loadTerms();
 
-    QString currentTermFolder() const;
+    QString currentTermFolder(QString const &dictionary = NULL) const;
 
     void loadTermFolders();
 
     void deleteTerm();
 
-    void checkHistoryLength(const int &documentLength);
+    void checkHistoryLength(const int documentLength) const;
 
-    void viewContents(QString const &currentTerm, bool const &isCurrentItem, bool const &historyUpdateNeeded);
+    void viewContents(QString const &currentTerm,
+                      bool isCurrentItem,
+                      bool historyUpdateNeeded,
+                      bool savePreviousTermNeeded = false);
 
     void viewContents(QString const &termPath);
 
-    void updateHistory(QString const &currentTerm);
+    void updateHistory(QString const &currentTerm) const;
 
     void renameTerm(QString const &newName);
 
